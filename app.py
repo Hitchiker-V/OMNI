@@ -39,16 +39,9 @@ This is the request by the CFO : {request}
 #     template = 'write a note on {topic}'
 # )
 
-checker_prompt_template = """
-You are the chief assistant to the Chief Financial Officer of the Company. You will recieve a list of tasks that you will have to check for their exhaustiveness. Your primary and only job is remove any redundant tasks or subtasks.
-DO NOT reorder any task in the list of tasks you recieve. ONLY append the task you think is missed before the task that depends on the missing task
- 
-Here is the received task list : {response_base}
-"""
 base_prompt = PromptTemplate.from_template(system_prompt_template)
-checker_prompt = PromptTemplate.from_template(checker_prompt_template)
 llm = OpenAI(model=MODEL, temperature=TMP)
-
+inp = st.text_input("Enter the task you want OMNI to do for you")
 # Record audio and transcribe it
 wav_audio_data = st_audiorec()
 transcript = ''
@@ -72,23 +65,19 @@ st.text(st.write(transcript))
 # print(file)
 
 # # request = st.text_input('Enter a prompt to statisy your need')
-request = transcript
-llm_chain_base = LLMChain(prompt=base_prompt, llm=llm)
-response_base = llm_chain_base.run(request)
+if not inp:
+    request = transcript
+    llm_chain_base = LLMChain(prompt=base_prompt, llm=llm)
+    response_base = llm_chain_base.run(request)
 
+    st.write(response_base)
 
-audio_resp=''
-final_response_audio=''
-if response_base:
-    final_response_audio = Path(__file__).parent/"tasklist.mp3"
-    audio_resp = openai.audio.speech.create(
-        model="tts-1",
-        voice="onyx",
-        input=response_base
-    )
-audio_resp.stream_to_file(final_response_audio)
-st.write(response_base)
+else:
+    request = inp
+    llm_chain_base = LLMChain(prompt=base_prompt, llm=llm)
+    response_base = llm_chain_base.run(request)
 
+    st.write(response_base)
 # st.subheader('Chief Tasker')
 # llm_chain_final = LLMChain(prompt=checker_prompt, llm=llm)
 # response_final = llm_chain_final.run(response_base)
